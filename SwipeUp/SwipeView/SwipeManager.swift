@@ -8,10 +8,8 @@ import UIKit
 
 class SwipeManager {
 
-    fileprivate weak var container : UIView!
-    fileprivate let swipeView: SwipeView
+    fileprivate unowned let swipeView: SwipeView
     var forceBackToZero = true
-    var animateEntrance = true
     fileprivate var doLayout = true
 
     fileprivate var _currentSwipeStep : Int = 0
@@ -36,15 +34,26 @@ class SwipeManager {
     fileprivate var swipeHandler : SwipeEventHandler!
     fileprivate var orientationManager : SwipeOrientationManager!
 
-    // Remember to call refreshView after viewDidLayoutSubviews
-    init(container: UIView, swipeView: SwipeView, initialStep: Int = 0) {
+    init(swipeView: SwipeView, initialStep: Int = 0) {
         self._currentSwipeStep = initialStep
-        self.container = container
         self.swipeView = swipeView
         self.setupOrientationManager()
         self.setupSwipeHandler()
-        self.addView()
         self.addListeners()
+    }
+
+    func refreshView() {
+        let x = self.swipeView.getStickyPointForXCenter(index: self.currentSwipeStep)
+        let y = self.swipeView.getStickyPointForYCenter(index: self.currentSwipeStep)
+
+        self.setPosition(x: x, y: y)
+    }
+
+    func doEntranceAnimation() {
+        self.setPosition(x: self.orientationManager.initialEntranceX, y: self.orientationManager.initialEntranceY)
+        UIView.animate(withDuration: 0.5) {
+            self.refreshView()
+        }
     }
 
     //MARK - Private
@@ -70,42 +79,12 @@ class SwipeManager {
         }
     }
 
-    fileprivate var centerXConstraint : NSLayoutConstraint!
-    fileprivate var centerYConstraint : NSLayoutConstraint!
-
-    fileprivate func addView() {
-        self.container.addSubview(self.swipeView)
-        self.swipeView.translatesAutoresizingMaskIntoConstraints = false
-
-        self.swipeView.widthAnchor.constraint(equalTo: self.container.widthAnchor).isActive = true
-        self.swipeView.heightAnchor.constraint(equalTo: self.container.heightAnchor).isActive = true
-
-        guard self.animateEntrance else {
-            self.refreshView()
-            return
-        }
-
-        self.doEntranceAnimation()
-    }
-
-    fileprivate func doEntranceAnimation() {
-        self.setPosition(x: self.orientationManager.initialEntranceX, y: self.orientationManager.initialEntranceY)
-        UIView.animate(withDuration: 0.5) {
-            self.refreshView()
-        }
-        self.swipeView.doEntranceAnimation()
-    }
-
-    fileprivate func refreshView() {
-        let x = self.swipeView.getStickyPointForXCenter(index: self.currentSwipeStep)
-        let y = self.swipeView.getStickyPointForYCenter(index: self.currentSwipeStep)
-
-        self.setPosition(x: x, y: y)
-    }
-
     fileprivate var lastViewFrame : CGRect?
     fileprivate func setPosition(x: CGFloat, y: CGFloat) {
-        self.swipeView.frame = CGRect(x: self.container.frame.width * x, y: self.container.frame.height * y, width: self.swipeView.frame.width, height: self.swipeView.frame.height)
+        guard let superview = self.swipeView.superview else {
+            return
+        }
+        self.swipeView.frame = CGRect(x: superview.frame.width * x, y: superview.frame.height * y, width: self.swipeView.frame.width, height: self.swipeView.frame.height)
         self.lastViewFrame = self.swipeView.frame
     }
 
@@ -214,7 +193,6 @@ extension SwipeManager: SwipeManagerProtocol {
             _ in
             completion()
         })
-        self.swipeView.doOutAnimation()
     }
 
     func animateTo(factor: CGFloat) {
@@ -238,7 +216,7 @@ extension SwipeManager: SwipeManagerProtocol {
 
 fileprivate class SwipeOrientationManager {
 
-    fileprivate let swipeView : SwipeView
+    fileprivate unowned let swipeView : SwipeView
     fileprivate unowned let delegate : SwipeManagerProtocol
 
     var initialEntranceX : CGFloat {

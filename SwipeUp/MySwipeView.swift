@@ -6,7 +6,7 @@
 import Foundation
 import UIKit
 
-class MySwipeView : SwipeVerticalView {
+class MySwipeView : SwipeHorizontalView {
 
     func createView() {
         let view = UIView()

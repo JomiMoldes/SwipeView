@@ -27,7 +27,6 @@ class ViewController: UIViewController {
         super.viewDidAppear(animated)
         let second = SecondViewController()
 
-//        self.navigationController?.viewControllers = [UIViewController]()
         self.navigationController?.pushViewController(second, animated: false)
     }
 }

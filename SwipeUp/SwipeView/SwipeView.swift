@@ -72,7 +72,7 @@ class SwipeHorizontalView : SwipeView {
     }
 
     override func setupSwipeLineConstraints(view: UIView) {
-        view.addConstraintEqualToSuperView(anchors: [.height(0.15), .centerY(1.0, 0.0), self.direction == .leftToRight ? .right(5.0) : .left(5.0)])
+        view.addConstraintEqualToSuperView(anchors: [.height(0.15), .centerY(1.0, 0.0), self.direction == .leftToRight ? .right(-5.0) : .left(5.0)])
         view.addFixedConstraints([.width(5.0)])
     }
 
@@ -131,11 +131,21 @@ class SwipeView: UIView, SwipeableViewProtocol {
         }
     }
 
-    init(stickyPoints: [CGFloat], direction: SwipeDirection) {
+    var animateEntrance = true
+
+    var frozen : Bool {
+        get { return self.swipeManager?.frozen ?? false }
+        set { self.swipeManager.frozen = newValue }
+    }
+
+    fileprivate var swipeManager : SwipeManager!
+
+    init(stickyPoints: [CGFloat], direction: SwipeDirection, initialStep: Int) {
         super.init(frame: CGRect.zero)
         self.stickyPoints = stickyPoints
         self.direction = direction
         self.setupContentContainer()
+        self.swipeManager = SwipeManager(swipeView: self, initialStep: initialStep)
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -159,8 +169,23 @@ class SwipeView: UIView, SwipeableViewProtocol {
         self.addBackground()
     }
 
+    override func didMoveToSuperview() {
+        super.didMoveToSuperview()
+
+        guard self.animateEntrance else {
+            self.swipeManager.refreshView()
+            return
+        }
+        self.swipeManager.doEntranceAnimation()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        self.swipeManager.didLayoutSubviews()
+    }
+
     fileprivate var bg : UIView?
-    func addBackground() {
+    fileprivate func addBackground() {
         let view = UIView()
         view.backgroundColor = UIColor.white
         self.addSubview(view)
@@ -181,13 +206,13 @@ class SwipeView: UIView, SwipeableViewProtocol {
         self.bg = view
     }
 
-    func setupBackgroundConstraints(view: UIView) {
+    fileprivate func setupBackgroundConstraints(view: UIView) {
         view.addConstraintEqualToSuperView(anchors: [.width(1.0), .centerX(1.0), .height(1.0)])
         view.addConstraintEqualToSuperView(anchors: [ self.direction == .bottomToTop ? .bottom(0.0) : .top(0.0)])
     }
 
     fileprivate var swipeLine : UIView?
-    func addSwipeLine() {
+    fileprivate func addSwipeLine() {
         guard self.stickyCount > 1 else {
             return
         }
@@ -202,8 +227,8 @@ class SwipeView: UIView, SwipeableViewProtocol {
         self.swipeLine = view
     }
 
-    func setupSwipeLineConstraints(view: UIView) {
-        view.addConstraintEqualToSuperView(anchors: [.width(0.1), .centerX(1.0), self.direction == .bottomToTop ? .top(7.0) : .bottom(7.0)])
+    fileprivate func setupSwipeLineConstraints(view: UIView) {
+        view.addConstraintEqualToSuperView(anchors: [.width(0.1), .centerX(1.0), self.direction == .bottomToTop ? .top(7.0) : .bottom(-7.0)])
         view.addFixedConstraints([.height(5.0)])
     }
 
@@ -240,14 +265,6 @@ class SwipeView: UIView, SwipeableViewProtocol {
 
     func getLowestPoint() -> CGFloat {
         return self.getStickyPointFor(index: 0)
-    }
-
-    func doOutAnimation() {
-
-    }
-
-    func doEntranceAnimation() {
-
     }
 
 }

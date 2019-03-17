@@ -15,38 +15,18 @@ class SecondViewController : UIViewController {
 
     fileprivate var swipeManager : SwipeManager!
     private func createSecondView() {
-        let view = MySwipeView(stickyPoints: [0.2, 0.5, 0.8], direction: .bottomToTop)
-        view.backgroundColor = UIColor.green
-        self.swipeManager = SwipeManager(container: self.view, swipeView: view, initialStep: 1)
+        let view = MySwipeView(stickyPoints: [0.2, 0.5, 0.8], direction: .leftToRight, initialStep: 2)
+        self.view.addSubview(view)
 
-//        self.swipeManager.start()
-//        self.swipeManager.animateTo(factor: 0.5)
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        view.widthAnchor.constraint(equalTo: self.view.widthAnchor).isActive = true
+        view.heightAnchor.constraint(equalTo: self.view.heightAnchor).isActive = true
+
+        view.backgroundColor = UIColor.green
         view.createView()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-//            self.createThirdView()
-//            self.swipeManager.frozen = true
-        }
-    }
-
-    fileprivate var swipeThirdManager : SwipeManager?
-    private func createThirdView() {
-        let view = MySwipeView(stickyPoints: [0.4, 0.9], direction: .bottomToTop)
-        view.backgroundColor = UIColor.green
-        self.swipeThirdManager = SwipeManager(container: self.view, swipeView: view)
-
-//        view.createView()
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            /*self.swipeThirdManager?.doOutAnimation {
-                self.swipeThirdManager = nil
-            }*/
-//            self.swipeThirdManager?.animateTo(factor: 0.6)
-        }
-    }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        self.swipeManager.didLayoutSubviews()
-        self.swipeThirdManager?.didLayoutSubviews()
+        /*DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            view.frozen = true
+        }*/
     }
 }
